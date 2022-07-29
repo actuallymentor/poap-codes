@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo&family=Comfortaa:wght@500&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Archivo', 'Helvetica Neue', sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ///////////////////////////////
+// Flow text
+// /////////////////////////////*/
+html {
+  font-size: calc( 18px + .1vw );
+}
