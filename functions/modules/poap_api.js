@@ -67,7 +67,7 @@ exports.live_access_token = async f => {
 * @returns {string} response.error Error message if one is given
 * @returns {string} response.message Contains error details if this was an error
 */
-exports.call_poap_endpoint = async ( endpoint='', data, method='GET', format='json' ) => {
+exports.call_poap_endpoint = async ( endpoint='', data, method='GET', format='json', throw_on_error=false ) => {
 
 		/* ///////////////////////////////
 		// Validations */
@@ -146,6 +146,7 @@ exports.call_poap_endpoint = async ( endpoint='', data, method='GET', format='js
 			// If json fails, try as text
 			const text = await backup_res.text().catch( e => e.message )
 			log( 'API text response: ', text )
+			if( throw_on_error ) throw new Error( `API Error for ${ apiUrl }` )
 			return {
 				error: `Error calling ${ apiUrl }`,
 				message: text

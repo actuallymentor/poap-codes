@@ -60,10 +60,7 @@ exports.get_code_statuses = async function ( codes, context ) {
 		const code_status_queue = codes.map( code => async () => {
 
 			// Filter out superfluous data
-			const { event, secret, event_template, ...code_data } = await call_poap_endpoint( `/actions/claim-qr`, { qr_hash: code }, 'GET' )
-
-			// Track which issuers are using the app so I can give them POAPs
-
+			const { error, event, secret, event_template, ...code_data } = await call_poap_endpoint( `/actions/claim-qr`, { qr_hash: code }, 'GET', true )
 
 			return code_data
 			

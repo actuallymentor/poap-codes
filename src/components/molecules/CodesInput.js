@@ -35,7 +35,6 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
                 // Load csv data
                 let data = await parse_csv_to_codes( file )
                 log( 'Raw codes loaded: ', data )
-                set_loading( `Checking ${ data.length } codes...` )
 
                 // Remove website prefix
                 data = data.map( code => code.replace( /(https?:\/\/.*\/)/ig, '' ) )
@@ -60,6 +59,7 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
                 if( !cancelled ) set_codes( data )
 
                 // Load event data based on codes
+                set_loading( `Checking ${ data.length } codes...` )
                 const { data: { event, error } } = await get_event_data_from_code( data[0] )
                 log( 'Code data received ', event )
                 if( error ) throw new Error( error )
@@ -76,14 +76,19 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
 
                 // Add expiry status based on event date
                 const expired = new Date( event.expiry_date ) < Date.now()
-                const annotated_statuses = statuses.map( status => ( { ...status, expired } ) )
+
+                // Keep only codes with data (in case API broke)
+                const sanitised_statuses = statuses.filter( ( { qr_hash, event_id } ) => !!qr_hash && !!event_id )
+
+                // Annotate with expiry data
+                const annotated_statuses = sanitised_statuses.map( status => ( { ...status, expired } ) )
                 
                 // Sort code statuses by claim status
                 annotated_statuses.sort( ( { claimed } ) => claimed ? 1 : -1 )
                 log( `Code statuses: `, statuses )
 
                 if( !cancelled ) set_loading( false )
-                
+
                 // Call on_codes callback
                 if( on_codes ) on_codes( annotated_statuses )
 
