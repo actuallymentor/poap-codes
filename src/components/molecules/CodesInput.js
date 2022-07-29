@@ -82,10 +82,11 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
                 annotated_statuses.sort( ( { claimed } ) => claimed ? 1 : -1 )
                 log( `Code statuses: `, statuses )
 
+                if( !cancelled ) set_loading( false )
+                
                 // Call on_codes callback
                 if( on_codes ) on_codes( annotated_statuses )
 
-                if( !cancelled ) set_loading( false )
 
             } catch( e ) {
 

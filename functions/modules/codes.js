@@ -31,7 +31,7 @@ exports.get_event_data_from_code = async function ( code, context ) {
 
 	try {
 
-		// throw_on_failed_app_check( context )
+		throw_on_failed_app_check( context )
 
 		// Get code meta from API
 		const { event, error, message } = await check_code_status( code )
@@ -54,13 +54,17 @@ exports.get_code_statuses = async function ( codes, context ) {
 
 	try {
 
-		// throw_on_failed_app_check( context )
+		throw_on_failed_app_check( context )
 
 		// Get code statuses from API
 		const code_status_queue = codes.map( code => async () => {
 
 			// Filter out superfluous data
 			const { event, secret, event_template, ...code_data } = await call_poap_endpoint( `/actions/claim-qr`, { qr_hash: code }, 'GET' )
+
+			// Track which issuers are using the app so I can give them POAPs
+
+
 			return code_data
 			
 		} )
