@@ -16,7 +16,7 @@ const dataFromSnap = ( snapOfDocOrDocs, withDocId=true ) => {
 
 }
 
-const throw_if_invalid_context = context => {
+const throw_on_failed_app_check = context => {
 
     if( dev ) return log( '⚠️ DEV detected, skipping app context check' )
 
@@ -31,6 +31,6 @@ module.exports = {
 	app,
 	db,
 	dataFromSnap,
-	throw_if_invalid_context,
+	throw_on_failed_app_check,
 	increment: FieldValue.increment
 }
