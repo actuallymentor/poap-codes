@@ -3,6 +3,7 @@ import { log } from '../../modules/helpers'
 import { get_event_data_from_code, get_code_statuses } from '../../modules/firebase'
 import Papa from 'papaparse'
 import Input from '../atoms/Input'
+import { set_item } from '../../modules/local-storage'
 
 
 export default ( { label, info, on_codes, on_event, ...props } ) => {
@@ -91,6 +92,10 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
 
                 // Call on_codes callback
                 if( on_codes ) on_codes( annotated_statuses )
+
+                // Save new codes to localstorage
+                await set_item( 'last_known_code_statuses', annotated_statuses )
+                await set_item( 'last_known_code_event', event )
 
 
             } catch( e ) {
