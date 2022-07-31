@@ -38,10 +38,14 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
                 log( 'Raw codes loaded: ', data )
 
                 // Remove website prefix
-                data = data.map( code => code.replace( /(https?:\/\/.*\/)/ig, '' ) )
+                data = data.map( code => {
+                    if( !code ) return ''
+                    const [ code_segment_only ] = `${ code }`.match( /(?:^|(?<=\/claim\/))[a-zA-Z0-9]{6}/ ) || []
+                    return code_segment_only
+                } )
 
                 // Take out empty lines
-                data = data.filter( code => code.length != 0 )
+                data = data.filter( code => `${ code }`.length != 0 )
 
                 // Find faulty codes
                 const faulty_codes = data.filter( code => !code.match( /\w{6}/ )  )
