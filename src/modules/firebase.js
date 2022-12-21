@@ -42,7 +42,7 @@ const appcheck = initializeAppCheck( app, {
 // Remote functions
 export const get_event_data_from_code = httpsCallable( functions, 'get_event_data_from_code' )
 export const get_code_statuses = httpsCallable( functions, 'get_code_statuses' )
-
+export const airdrop_to_address_list = httpsCallable( functions, 'airdrop_to_address_list' )
 
 // Offline functions emulator
 // Connect to functions emulator

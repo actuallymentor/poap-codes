@@ -4,52 +4,38 @@ import Section from "../atoms/Section"
 import Hero from "../molecules/Hero"
 import CodesTable from "../molecules/CodesTable"
 import { H1, H2, Text } from "../atoms/Text"
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { log } from "../../modules/helpers"
 import { useLastKnownCodeEvent, useLastKnownCodeStatuses } from "../../hooks/codes"
 import { set_item } from "../../modules/local-storage"
+import { useNavigate } from "react-router-dom"
+import Button from "../atoms/Button"
 
 export default function Homepage() {
 
-    const [ codes, set_codes ] = useState()
-    const [ event, set_event ] = useState(  )
-    const old_statuses = useLastKnownCodeStatuses()
-    const old_event = useLastKnownCodeEvent()
-
-    async function copy_and_mark( code, link ) {
-
-        // Write to clipboard
-		await navigator.clipboard.writeText( link )
-        alert( `✅ Copied to clipboard: ${ link }` )
-
-        // Mark code as copied internally
-        const current_codes = codes || old_statuses
-        const updated_codes = current_codes?.map( claimcode => {
-            if( claimcode.qr_hash == code ) return {
-                ...claimcode,
-                ...( !claimcode.tx_hash && { claimed: `⚠️ copied` } )
-            }
-            return claimcode
-        } )
-        set_codes( updated_codes )
-        await set_item( 'last_known_code_statuses', updated_codes )
-        log( `Updated code cache to `, updated_codes )
-
-
-    }
+    const navigate = useNavigate()
 
     return <Container gutter={ false }>
 
-        <Hero pull={ !!codes?.length || !!old_statuses?.length }>
-            <H1>POAP Claim Codes Manager</H1>
-            <H2>Check the status of your claim codes</H2>
-            <Text margin='0' width='500px'>As a POAP issuer, you sometimes lose track of which codes you sent out, and which are still ready to share. This tool takes in your codes.txt and shows you which codes are still unclaimed.</Text>
-            <CodesInput on_codes={ set_codes } on_event={ set_event } />
+        <Hero>
+            <H1>POAP Mint Links Manager</H1>
+            <H2>Manage and distribute POAP mint links</H2>
+            <Text margin='0' width='500px'>Lost track of which POAP mint links you sent out? Need to airdrop POAPs? We've got you covered.</Text>
         </Hero>
 
-        <Section>
+        <Section direction="row" padding="2rem" justify="space-around">
 
-            <CodesTable on_claim_link_click={ copy_and_mark } title={ old_statuses && old_event?.name || ( codes && event?.name ) } image={ event?.image_url || old_event?.image_url } rows={ codes || old_statuses } />
+            <Section align="flex-start" padding="1rem" width="600px">
+                <H2>Check which mint links are still valid</H2>
+                <Text margin='2rem 0' width='700px'>As a POAP issuer, you sometimes lose track of which codes you sent out, and which are still ready to share. This tool takes in your codes.txt and shows you which codes are still unclaimed.</Text>
+                <Button onClick={ () => navigate( '/status' ) }>Mint link checker</Button>
+            </Section>
+
+            <Section align="flex-start" padding="1rem" width="600px">
+                <H2>Airdrop POAPs</H2>
+                <Text margin='2rem 0' width='700px'>If you promised a large group of people POAPs, handing them out can be a hassle. If you have a list of addresses, you can mass-distribute POAPs to a list of addresses.</Text>
+                <Button onClick={ () => navigate( '/airdrop' ) }>Airdrop tool</Button>
+            </Section>
 
         </Section>
 

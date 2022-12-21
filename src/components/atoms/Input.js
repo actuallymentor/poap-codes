@@ -31,6 +31,7 @@ const Input = styled.span`
 	
 	& select, input, & p {
 		background: ${ ( { theme } ) => theme.colors.backdrop };
+		color: ${ ( { theme } ) => theme.colors.text };
 		border: none;
 		border-left: 2px solid ${ ( { theme, highlight } ) => highlight ? theme.colors.accent : theme.colors.primary };
 	}

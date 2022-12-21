@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { log } from "../modules/helpers";
 import { get_item } from "../modules/local-storage";
 
-export function useLastKnownCodeStatuses() {
+export function useLastKnownCodeStatuses( last_update ) {
 
     const [ last_known_codes, set_last_known_codes ] = useState()
 
@@ -28,7 +28,7 @@ export function useLastKnownCodeStatuses() {
     
         return () => cancelled = true
     
-    }, [] )
+    }, [ last_update ] )
 
     return last_known_codes
 

@@ -1,7 +1,7 @@
 // Firebase interactors
 const functions = require( 'firebase-functions' )
 const { db, dataFromSnap } = require( './firebase' )
-const { log, dev } = require( './helpers' )
+const { log, dev, wait } = require( './helpers' )
 
 // Secrets
 const { auth0, poap } = functions.config()
@@ -129,30 +129,54 @@ exports.call_poap_endpoint = async ( endpoint='', data, method='GET', format='js
 			headers: headers,
 			...request_data
 		}
+
 		log( `Calling ${ url } with `, options )
 		const res = await fetch( url, options )
 		const backup_res = res.clone()
+		log( `Response received, parsing...` )
 
-		// Parse the response
+		// Try to access response as json first
+		let json = {}
 		try {
-
-			// Try to access response as json first
-			const json = await res.json()
-			log( 'API json response: ', json )
-			return json
-
-		} catch {
-
-			// If json fails, try as text
-			const text = await backup_res.text().catch( e => e.message )
-			log( 'API text response: ', text )
-			if( throw_on_error ) throw new Error( `API Error for ${ apiUrl }` )
-			return {
-				error: `Error calling ${ apiUrl }`,
-				message: text
+			log( `Parsing response json...` )
+			const json_response = await Promise.race( [
+				res.json(),
+				wait( 1000 * 10 ).then( f => false )
+			] )
+			if( json_response ) {
+				log( `Json parse success` )
+				json = json_response
 			}
-
+			else {
+				log( `Json parse failed, trying text parsing` )
+				const text_response = await backup_res.text()
+				log( `Text parsed, trying to parse text as json` )
+				const json_of_text = JSON.parse( text_response )
+				json = json_of_text
+			}
+			log( `Succesfully parsed response as json` )
+		} catch {
+			json.error = `Unknown API error, this is probably a POAP API issue`
+			log( `💥 Invalid JSON response on ${ endpoint }, this should never happen.` )
+			// if( local ) {
+			// 	const text_response = await backup_res.text()
+			// 	log( `Errored esponse: `, text_response )
+			// }
 		}
+
+		log( 'API json response: ', dev ? json : 'redacted' )
+
+		// Handle errors from API
+		const { error, message, Message, statusCode } = json
+		const an_error = message || Message || error || statusCode
+		if( an_error ) {
+
+			log( `Api encountered an error: ${ an_error }, ${ throw_on_error ? ' Throwing error' : 'Not throwing error' }` )
+			if( throw_on_error ) throw new Error( an_error )
+			return { error: an_error, statusCode }
+		}
+
+		return json
 
 
 }

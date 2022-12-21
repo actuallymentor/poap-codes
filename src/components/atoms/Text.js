@@ -41,7 +41,7 @@ export const H2 = styled.h2`
 
 export const Sidenote = styled.p`
 	color: ${ ( { theme } ) => theme.colors.hint };
-	font-style: italic;
+	font-size: .8rem;
 	margin-top:  1rem;
 	text-align: center;
 	overflow-wrap: anywhere;

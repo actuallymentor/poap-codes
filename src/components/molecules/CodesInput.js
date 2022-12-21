@@ -3,7 +3,9 @@ import { log } from '../../modules/helpers'
 import { get_event_data_from_code, get_code_statuses } from '../../modules/firebase'
 import Papa from 'papaparse'
 import Input from '../atoms/Input'
-import { set_item } from '../../modules/local-storage'
+import { get_item, set_item } from '../../modules/local-storage'
+import { useLastKnownCodeStatuses } from '../../hooks/codes'
+import { Text, Sidenote } from '../atoms/Text'
 
 
 export default ( { label, info, on_codes, on_event, ...props } ) => {
@@ -12,30 +14,44 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
     const [ file, set_file ] = useState(  )
     const [ filename, set_filename ] = useState( 'codes.txt' )
     const [ loading, set_loading] = useState(  )
+    const [ last_refresh, set_last_refresh ] = useState( Date.now() )
+    const old_statuses = useLastKnownCodeStatuses( last_refresh )
 
     // File validations and loading
     useEffect( f => {
 
         let cancelled = false
-        if( !file ) return
+        if( !file && !old_statuses ) return
 
         ( async f => {
 
             try {
 
-                // Loading animation
-                set_loading( `Checking your codes...` )
+                let data = []
+                let old_data_cache = []
+                if( file ) {
+                    // Loading animation
+                    set_loading( `Checking your codes...` )
 
-                // Validations
-                const { name } = file
-                if( !name.includes( '.csv' ) && !name.includes( '.txt' ) ) throw new Error( `Please upload a .txt or .csv file` )
+                    // Validations
+                    const { name } = file
+                    if( !name.includes( '.csv' ) && !name.includes( '.txt' ) ) throw new Error( `Please upload a .txt or .csv file` )
 
-                // Set filename to state
-                set_filename( name )
+                    // Set filename to state
+                    set_filename( name )
 
-                // Load csv data
-                let data = await parse_csv_to_codes( file )
-                log( 'Raw codes loaded: ', data )
+                    // Load csv data
+                    data = await parse_csv_to_codes( file )
+                    log( 'Raw codes loaded: ', data )
+
+                } else {
+
+                    const { content, error } = await get_item( 'last_known_code_statuses' )
+                    log( `Manually received last known code statuses: `, content )
+                    old_data_cache = content
+                    data = content.map( ( { qr_hash } ) => qr_hash )
+
+                }
 
                 // Remove website prefix
                 data = data.map( code => {
@@ -87,18 +103,30 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
 
                 // Annotate with expiry data
                 const annotated_statuses = sanitised_statuses.map( status => ( { ...status, expired } ) )
+
+                // Grab old statuses if available
+                const statuses_with_restored_values = annotated_statuses.map( status => {
+                    const old_status = old_data_cache.find( ( { qr_hash } ) => qr_hash == status.qr_hash ) || {}
+                    log( `Finding ${ status.qr_hash } in `, [ ...old_data_cache ], ` found: `, { ...old_status } )
+                    if( typeof old_status.claimed == 'string' ) return {
+                        ...status,
+                        claimed: old_status.claimed
+                    }
+                    return status
+                
+                } )
                 
                 // Sort code statuses by claim status
-                annotated_statuses.sort( ( { claimed } ) => claimed ? 1 : -1 )
-                log( `Code statuses: `, statuses )
+                statuses_with_restored_values.sort( ( { claimed } ) => claimed ? 1 : -1 )
+                log( `Code statuses: `, statuses_with_restored_values )
 
                 if( !cancelled ) set_loading( false )
 
                 // Call on_codes callback
-                if( on_codes ) on_codes( annotated_statuses )
+                if( on_codes ) on_codes( statuses_with_restored_values )
 
                 // Save new codes to localstorage
-                await set_item( 'last_known_code_statuses', annotated_statuses )
+                await set_item( 'last_known_code_statuses', statuses_with_restored_values )
                 await set_item( 'last_known_code_event', event )
 
 
@@ -116,34 +144,37 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
 
         return () => cancelled = true
 
-    }, [ file ] )
+    }, [ file, last_refresh ] )
 
     // ///////////////////////////////
   // Component functions
   // ///////////////////////////////
     async function parse_csv_to_codes( file ) {
-    return new Promise( ( resolve, reject ) => {
+        return new Promise( ( resolve, reject ) => {
 
-        // parse csv
-        Papa.parse( file, {
+            // parse csv
+            Papa.parse( file, {
 
-            // Assuming it is a newline delimited file, the first entry of each line is the code
-            complete: ( { data } ) => resolve( data.map( line => line[0] ) ),
-            error: err => reject( err )
+                // Assuming it is a newline delimited file, the first entry of each line is the code
+                complete: ( { data } ) => resolve( data.map( line => line[0] ) ),
+                error: err => reject( err )
+
+            } )
 
         } )
-
-    } )
     }
 
-    return <Input
-        { ...props }
-        animate={ !!loading }
-        highlight={ !codes } 
-        label={ label || 'Select your codes.txt file:' }
-        accept=".csv,.txt"
-        title={ loading || file && codes && `[ ${filename} ]` }
-        onClick={ !filename ? undefined : () => set_file( undefined ) }
-        onChange={ ( { target } ) => set_file( target.files[0] ) } type='file'
-    />
+    return <>
+        <Input
+            { ...props }
+            animate={ !!loading }
+            highlight={ !codes } 
+            label={ label || 'Select your codes.txt file:' }
+            accept=".csv,.txt"
+            title={ loading || file && codes && `[ ${ file.name } ]` }
+            onClick={ !filename ? undefined : () => set_file( undefined ) }
+            onChange={ ( { target } ) => set_file( target.files[0] ) } type='file'
+        />
+        { old_statuses && <Sidenote margin="0 0 1rem" style={ { cursor: 'pointer' } } onClick={ () => set_last_refresh( Date.now() ) }>🔄 Click to refresh old codes</Sidenote> }
+    </>
 }
