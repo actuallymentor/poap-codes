@@ -12,7 +12,7 @@ exports.airdrop_to_address_list = async ( data, context ) => {
         const { drop_id, edit_code, list_of_addresses } = data
         if( !drop_id || !edit_code ) throw new Error( `Missing drop details` )
         if( !list_of_addresses.length ) throw new Error( `Address list must have at least one entry` )
-        const addresses = list_of_addresses.split( /,|\n/ )
+        const addresses = list_of_addresses.split( /,|\n/ ).filter( address => !!address ).map( address => address.trim() )
 
         /* ///////////////////////////////
         // Get codes of event */
