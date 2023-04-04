@@ -1,13 +1,7 @@
 import Container from "../atoms/Container"
-import CodesInput from "../molecules/CodesInput"
 import Section from "../atoms/Section"
 import Hero from "../molecules/Hero"
-import CodesTable from "../molecules/CodesTable"
 import { H1, H2, Text } from "../atoms/Text"
-import { useState } from "react"
-import { log } from "../../modules/helpers"
-import { useLastKnownCodeEvent, useLastKnownCodeStatuses } from "../../hooks/codes"
-import { set_item } from "../../modules/local-storage"
 import { useNavigate } from "react-router-dom"
 import Button from "../atoms/Button"
 
