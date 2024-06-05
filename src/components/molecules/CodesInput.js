@@ -56,7 +56,7 @@ export default ( { label, info, on_codes, on_event, ...props } ) => {
                 // Remove website prefix
                 data = data.map( code => {
                     if( !code ) return ''
-                    const [ fm, code_segment_only ] = `${ code }`.match( /(?:^|claim\/)([a-zA-Z0-9]{6})/ ) || []
+                    const [ fm, code_segment_only ] = `${ code }`.match( /(?:^|claim|mint\/)([a-zA-Z0-9]{6})/ ) || []
                     return code_segment_only
                 } )
 
