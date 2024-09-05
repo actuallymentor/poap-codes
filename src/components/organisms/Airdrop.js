@@ -58,7 +58,7 @@ export default function Homepage() {
         </Hero>
 
         { !disclaimer_accepted && <Section direction="column" padding="2rem" width="600px">
-            <Text align="center">IMPORTANT: sending POAPs to people who did not EXCPLCITLY request them is against the POAP ethos. If you airdrop POAPs to peope who did not ask for them, you risk getting yourself and/or your organisation banned from creating POAPs in the future.</Text>
+            <Text align="center">IMPORTANT: sending POAPs to people who did not EXCPLCITLY request them is against the POAP ethos. If you airdrop POAPs to people who did not ask for them, you risk getting yourself and/or your organisation banned from creating POAPs in the future.</Text>
             <Button onClick={ () => set_disclaimer_accepted( true ) }>I understand that abuse gets me banned</Button>
         </Section> }
 
